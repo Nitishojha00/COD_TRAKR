@@ -12,6 +12,7 @@ const LOCK_TTL = 60;            // 60 sec
 
 /* ================= HELPER: SCRAPER LOGIC ================= */
 async function fetchRealTimeStats(platforms) {
+  try{
   const stats = JSON.parse(JSON.stringify(platforms));
   const tasks = [];
 
@@ -53,9 +54,15 @@ async function fetchRealTimeStats(platforms) {
   await Promise.allSettled(tasks);
   return stats;
 }
+catch (error) {
+    console.error("fetchRealTimeStats Fatal Error:", error.message);
+    return platforms; // fallback return
+  }
+};
 
 /* ================= HELPER: AGGREGATION ================= */
 function buildDashboardResponse(platforms) {
+  try{
   let totalSolved = 0;
   let totalContests = 0;
   let bestRating = 0;
@@ -79,6 +86,11 @@ function buildDashboardResponse(platforms) {
     bestRating,
     platformCount: count
   };
+}
+catch (error) {
+    console.error("fetchRealTimeStats Fatal Error:", error.message);
+    return platforms; // fallback return
+  }
 }
 
 /* ================= BACKGROUND REFRESH ================= */

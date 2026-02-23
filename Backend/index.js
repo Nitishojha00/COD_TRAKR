@@ -14,7 +14,7 @@ dotenv.config();
 
 // 1. FIX CORS: Add 5500 (Live Server default)
 app.use(cors({
-  origin: ["http://127.0.0.1:3000","https://codolio-clone.vercel.app"], 
+  origin: ["http://127.0.0.1:3000","https://codolio-clone.vercel.app" , "http://127.0.0.1:5500"], 
   credentials: true 
 }));
 

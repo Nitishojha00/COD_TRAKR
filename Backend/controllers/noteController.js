@@ -42,6 +42,7 @@ const clearUserCache = async (userId) => {
    Use this for both "All Problems" and "Importance"
 ================================================== */
 async function fetchAndCacheNotes(query, userId, page, limit, cacheKey) {
+  try{
   const skip = (page - 1) * limit;
 
   // Parallel Fetch: Get Data + Count at the same time
@@ -68,6 +69,21 @@ async function fetchAndCacheNotes(query, userId, page, limit, cacheKey) {
   await redisClient.set(cacheKey, JSON.stringify(response), { EX: 86400 });
   
   return response;
+}
+catch (error) {
+    console.error("fetchAndCacheNotes Error:", error.message);
+
+    // optional safe fallback response
+    return {
+      success: false,
+      page,
+      totalProblems: 0,
+      totalPages: 0,
+      count: 0,
+      data: [],
+      error: error.message
+    };
+  }
 }
 
 /* ================= CONTROLLERS ================= */

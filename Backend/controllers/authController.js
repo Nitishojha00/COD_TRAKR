@@ -4,6 +4,7 @@ const sendEmail = require("../utils/sendEmail");
 const generateOTP = require("../utils/generateOTP");
 const checkOtpRateLimit = require("../utils/otpRateLimit");
 const jwt = require("jsonwebtoken");
+const validate = require("../utils/validator")
 
 /* TEMP OTP STORE (simple testing) */
 let pendingSignup = null;
@@ -21,8 +22,10 @@ const cookieOptions = {
 };
 
 const LOGIN = async (req, res) => {
+  try{
   const { email, password } = req.body;
 
+  validate({ email, password });
   // console.log(1);
   const user = await User.findOne({ email });
   if (!user) return res.status(400).send("User not found");
@@ -38,12 +41,21 @@ const LOGIN = async (req, res) => {
   
   res.cookie("token", token, cookieOptions);
   res.send("Login successful");
+}
+catch(err) {
+    res.status(400).json({
+      success: false,
+      message: err.message
+    });
+};
 };
 
-
 const signUpGenerateOTP = async (req, res) => {
-  const { name, email, password } = req.body;
 
+  try{
+  const { name, email, password } = req.body; 
+
+  validate({ email, password }); // ✅ FIXED
   const exists = await User.findOne({ email });
   if (exists) return res.status(400).send("User already registered");
 
@@ -87,8 +99,16 @@ const signUpGenerateOTP = async (req, res) => {
     signupId
   });
 }
+catch(err) {
+    res.status(400).json({
+      success: false,
+      message: err.message
+    });
+}
+}
 
 const signUpVerifyOTP = async (req, res) => {
+  try{
   const { signupId, otp } = req.body;
 
   const data = await redis.get(`signup:${signupId}`);
@@ -119,6 +139,13 @@ const signUpVerifyOTP = async (req, res) => {
       );
   res.cookie("token", token, cookieOptions);
   res.send("Signup successful");
+}
+catch(err) {
+    res.status(400).json({
+      success: false,
+      message: err.message
+    });
+}
 }
 
 module.exports = {
