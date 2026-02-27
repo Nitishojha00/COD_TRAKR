@@ -2,20 +2,35 @@ const axios = require("../config/axiosConfig");
 const cheerio = require("cheerio");
 const puppeteer = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
+const { chromium } = require("playwright");
 
 puppeteer.use(StealthPlugin());
 
-let browserPromise;
+let puppeteerBrowser;
+let playwrightBrowser;
 
-async function getBrowser() {
-  if (!browserPromise) {
-    browserPromise = puppeteer.launch({
+/* ================= BROWSER HELPERS ================= */
+
+async function getPuppeteer() {
+  if (!puppeteerBrowser) {
+    puppeteerBrowser = await puppeteer.launch({
       headless: "new",
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
   }
-  return browserPromise;
+  return puppeteerBrowser;
 }
+
+async function getPlaywright() {
+  if (!playwrightBrowser) {
+    playwrightBrowser = await chromium.launch({
+      headless: true,
+    });
+  }
+  return playwrightBrowser;
+}
+
+/* ================= MAIN FUNCTION ================= */
 
 async function fetchGFG(username) {
   const result = { solved: 0, rating: 0 };
@@ -23,40 +38,13 @@ async function fetchGFG(username) {
 
   console.log(`🔍 GFG: Attempting for ${username}...`);
 
-  /* ================= STRATEGY 1: PUPPETEER (PRIMARY) ================= */
+  /* =====================================================
+     STRATEGY 1: AXIOS + CHEERIO (FASTEST)
+  ===================================================== */
   try {
-    const browser = await getBrowser();
-    const page = await browser.newPage();
-
-    await page.setUserAgent(
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0"
-    );
-
-    await page.goto(url, { waitUntil: "networkidle0", timeout: 30000 });
-    await page.waitForSelector("body", { timeout: 10000 });
-
-    const pageText = await page.evaluate(() => document.body.innerText);
-
-    const solvedMatch = pageText.match(/Problems\s*Solved\s*(\d+)/i);
-    const scoreMatch = pageText.match(/Coding\s*Score\s*(\d+)/i);
-
-    if (solvedMatch) result.solved = parseInt(solvedMatch[1]);
-    if (scoreMatch) result.rating = parseInt(scoreMatch[1]);
-
-    await page.close();
-
-    if (result.solved > 0) {
-      console.log(`✅ GFG (Puppeteer): Solved ${result.solved}`);
-      return result;
-    }
-  } catch (err) {
-    console.log("⚠️ GFG Puppeteer failed, trying axios fallback...");
-  }
-
-  /* ================= STRATEGY 2: AXIOS FALLBACK ================= */
-  try {
-    const res = await axios.get(url);
+    const res = await axios.get(url, { timeout: 10000 });
     const $ = cheerio.load(res.data);
+
     const text = $("body").text();
 
     const solvedMatch = text.match(/Problems\s*Solved\s*(\d+)/i);
@@ -66,12 +54,86 @@ async function fetchGFG(username) {
     if (scoreMatch) result.rating = parseInt(scoreMatch[1]);
 
     if (result.solved > 0) {
-      console.log(`✅ GFG (Axios): Solved ${result.solved}`);
+      console.log("✅ GFG (Cheerio success)");
+      return result;
     }
-  } catch {
-    console.log("❌ GFG Axios fallback failed");
+  } catch (err) {
+    console.log("⚠️ Cheerio failed");
   }
 
+  /* =====================================================
+     STRATEGY 2: PLAYWRIGHT (MORE STABLE THAN PUPPETEER)
+  ===================================================== */
+  try {
+    const browser = await getPlaywright();
+    const page = await browser.newPage();
+
+    await page.goto(url, {
+      waitUntil: "networkidle",
+      timeout: 30000,
+    });
+
+    await page.waitForTimeout(5000); // allow dynamic content
+
+    const content = await page.content();
+    const $ = cheerio.load(content);
+    const text = $("body").text();
+
+    const solvedMatch = text.match(/Problems\s*Solved\s*(\d+)/i);
+    const scoreMatch = text.match(/Coding\s*Score\s*(\d+)/i);
+
+    if (solvedMatch) result.solved = parseInt(solvedMatch[1]);
+    if (scoreMatch) result.rating = parseInt(scoreMatch[1]);
+
+    await page.close();
+
+    if (result.solved > 0) {
+      console.log("✅ GFG (Playwright success)");
+      return result;
+    }
+  } catch (err) {
+    console.log("⚠️ Playwright failed");
+  }
+
+  /* =====================================================
+     STRATEGY 3: PUPPETEER STEALTH (LAST RESORT)
+  ===================================================== */
+  try {
+    const browser = await getPuppeteer();
+    const page = await browser.newPage();
+
+    await page.setUserAgent(
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0"
+    );
+
+    await page.goto(url, {
+      waitUntil: "networkidle2",
+      timeout: 30000,
+    });
+
+    await page.waitForTimeout(5000);
+
+    const content = await page.content();
+    const $ = cheerio.load(content);
+    const text = $("body").text();
+
+    const solvedMatch = text.match(/Problems\s*Solved\s*(\d+)/i);
+    const scoreMatch = text.match(/Coding\s*Score\s*(\d+)/i);
+
+    if (solvedMatch) result.solved = parseInt(solvedMatch[1]);
+    if (scoreMatch) result.rating = parseInt(scoreMatch[1]);
+
+    await page.close();
+
+    if (result.solved > 0) {
+      console.log("✅ GFG (Puppeteer success)");
+      return result;
+    }
+  } catch (err) {
+    console.log("❌ Puppeteer failed");
+  }
+
+  console.log("❌ All strategies failed");
   return result;
 }
 
