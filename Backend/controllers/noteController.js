@@ -180,7 +180,7 @@ exports.updateProblem = async (req, res) => {
     const updated = await Note.findOneAndUpdate(
       { user: userId, problemId },
       req.body,
-      { new: true, runValidators: true }
+      { returnDocument: "after", runValidators: true }
     );
 
     if (!updated) return res.status(404).json({ success: false, message: "Problem not found" });

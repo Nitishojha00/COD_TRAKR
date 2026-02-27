@@ -135,7 +135,11 @@ const getMe = async (req, res) => {
 const saveAccounts = async (req, res) => {
   try {
     const { platforms } = req.body;
-    await User.findByIdAndUpdate(req.userId, { platforms }, { new: true });
+    await User.findByIdAndUpdate(
+      req.userId,
+      { platforms },
+      { returnDocument: "after" }
+    );
 
     // Clear dashboard cache
     await redisClient.del(`dashboard:data:${req.userId}`);
