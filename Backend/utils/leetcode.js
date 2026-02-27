@@ -27,7 +27,21 @@ async function fetchLeetCode(username) {
     const res = await axios.post(
       "https://leetcode.com/graphql",
       query,
-      { headers: { "Content-Type": "application/json" } }
+      {
+        headers: {
+          "Content-Type": "application/json",
+
+          // Override wrong global headers
+          "Accept": "*/*",
+          "Origin": "https://leetcode.com",
+          "Referer": `https://leetcode.com/${username}/`,
+
+          // Safe browser UA
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0"
+        },
+        timeout: 15000
+      }
     );
 
     const data = res.data?.data;
