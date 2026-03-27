@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://127.0.0.1:4000"; 
+const API_BASE_URL = "https://codtrakr.nitishojha.in"; 
 axios.defaults.withCredentials = true;
 
 let currentState = { view: 'importance', page: 1, tag: '', stars: 0 };
@@ -308,3 +308,24 @@ async function logout() {
   } catch {}
   window.location.replace("login.html");
 }
+
+// Dark mode toggle (synced with portfolio)
+    const toggleBtn = document.getElementById("theme-toggle");
+    toggleBtn.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+      const isDark = document.body.classList.contains("dark");
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+      toggleBtn.innerHTML = isDark ? '<i class="fa-regular fa-sun"></i> Light Mode' : '<i class="fa-solid fa-moon"></i> Dark Mode';
+    });
+    if (localStorage.getItem("theme") === "dark") {
+      document.body.classList.add("dark");
+      toggleBtn.innerHTML = '<i class="fa-regular fa-sun"></i> Light Mode';
+    } else {
+      toggleBtn.innerHTML = '<i class="fa-solid fa-moon"></i> Dark Mode';
+    }
+
+    // Keep the existing sidebar toggle function (already in scriptNote.js)
+    function toggleSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      sidebar.classList.toggle("active");
+    }
