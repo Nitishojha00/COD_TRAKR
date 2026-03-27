@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard | CodeTracker</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --bg: #f7f5f2;
+      --ink: #1a1a1a;
+      --muted: #888;
+      --accent: #2d6a4f;
+      --accent-light: #d8f3dc;
+      --border: #e0ddd8;
+      --card-bg: #ffffff;
+    }
+
+    body.dark {
+      --bg: #212428;
+      --ink: #fcfdff;
+      --muted: #f8f8f8;
+      --accent: #22c55e;
+      --accent-light: #241f1f;
+      --border: #0f1011;
+      --card-bg: #19191a;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      transition: background 0.2s, color 0.2s;
+    }
+
+    header {
+      background: rgba(247,245,242,0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    body.dark header {
+      background: rgba(33,36,40,0.9);
+    }
+
+    .user-greeting {
+      font-weight: 500;
+    }
+
+    .user-greeting span {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .nav-links a, .nav-links button {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: color 0.2s;
+      text-decoration: none;
+    }
+
+    .nav-links a:hover, .nav-links button:hover {
+      color: var(--ink);
+    }
+
+    .logout-btn {
+      background: rgba(239, 68, 68, 0.1);
+      padding: 6px 14px;
+      border-radius: 40px;
+      color: #f87171 !important;
+    }
+
+    .theme-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 40px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: var(--ink);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 28px;
+      transition: transform 0.2s;
+    }
+
+    h3 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.3rem;
+      margin-bottom: 8px;
+    }
+
+    .inputs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+
+    input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: var(--ink);
+      font-size: 14px;
+      width: 100%;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    button {
+      background: var(--ink);
+      color: var(--bg);
+      border: none;
+      border-radius: 40px;
+      padding: 10px 20px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .stat-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-box p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .stat-box h2, .stat-box h3 {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .platform {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .platform h4 {
+      font-size: 1.1rem;
+      margin-bottom: 12px;
+      color: var(--accent);
+    }
+
+    @media (max-width: 640px) {
+      header { flex-direction: column; gap: 12px; }
+      .container { padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="user-greeting">
+    Welcome, <span id="user">Loading...</span> <i class="fa-regular fa-smile"></i>
+  </div>
+  <div class="nav-links">
+    <a href="Notes.html"><i class="fa-solid fa-note-sticky"></i> Notes</a>
+    <button class="logout-btn" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+    <button class="theme-toggle" id="theme-toggle">🌙</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <h3><i class="fa-brands fa-github"></i> Link Coding Accounts</h3>
+    <small>Enter only your username (not the full URL)</small>
+    <div class="inputs-grid">
+      <input id="lc" placeholder="LeetCode username">
+      <input id="cf" placeholder="Codeforces username">
+      <input id="cc" placeholder="CodeChef username">
+      <input id="gfg" placeholder="GFG username">
+    </div>
+    <button onclick="saveAccounts()">Save Accounts</button>
+  </div>
+
+  <div class="card">
+    <h3><i class="fa-solid fa-chart-simple"></i> Overall Performance</h3>
+    <div class="stats-grid">
+      <div class="stat-box"><p>Total Problems</p><h2 id="totalSolved">0</h2></div>
+      <div class="stat-box"><p>Total Contests</p><h2 id="totalContests">0</h2></div>
+      <div class="stat-box"><p>Best Rating</p><h2 id="bestRating">0</h2></div>
+      <div class="stat-box"><p>Platforms Linked</p><h2 id="platformCount">0</h2></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3><i class="fa-solid fa-chart-line"></i> Platform-wise Statistics</h3>
+    <div id="platformStats">Loading...</div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+  const API = "http://127.0.0.1:4000";
+  axios.defaults.baseURL = API;
+  axios.defaults.withCredentials = true;
+
+  const totalSolvedEl = document.getElementById("totalSolved");
+  const totalContestsEl = document.getElementById("totalContests");
+  const bestRatingEl = document.getElementById("bestRating");
+  const platformCountEl = document.getElementById("platformCount");
+  const platformStats = document.getElementById("platformStats");
+
+  const lcInput = document.getElementById("lc");
+  const cfInput = document.getElementById("cf");
+  const ccInput = document.getElementById("cc");
+  const gfgInput = document.getElementById("gfg");
+
+  async function loadUser() {
+    try {
+      const res = await axios.get("/api/dashboard/me");
+      document.getElementById("user").innerText = res.data.name;
+
+      const p = res.data.platforms || {};
+      lcInput.value = p.LeetCode?.username || "";
+      cfInput.value = p.Codeforces?.username || "";
+      ccInput.value = p.CodeChef?.username || "";
+      gfgInput.value = p.GFG?.username || "";
+
+      await loadStats();
+    } catch {
+      logout();
+    }
+  }
+
+  async function loadStats() {
+    try {
+      platformStats.innerHTML = '<div style="text-align:center">Loading stats...</div>';
+      const res = await axios.get("/api/dashboard/dashboard");
+      updateDashboardUI(res.data);
+    } catch {
+      platformStats.innerHTML = "<p style='color:#ef4444'>Failed to load stats</p>";
+    }
+  }
+
+  async function saveAccounts() {
+    const platforms = {};
+    if (lcInput.value) platforms.LeetCode = { username: lcInput.value };
+    if (cfInput.value) platforms.Codeforces = { username: cfInput.value };
+    if (ccInput.value) platforms.CodeChef = { username: ccInput.value };
+    if (gfgInput.value) platforms.GFG = { username: gfgInput.value };
+
+    try {
+      await axios.post("/api/dashboard/accounts", { platforms });
+      alert("Accounts saved successfully!");
+      await loadStats();
+    } catch {
+      alert("Failed to save accounts");
+    }
+  }
+
+  function updateDashboardUI(data) {
+    const { platforms, totalSolved, totalContests, bestRating, platformCount } = data;
+
+    totalSolvedEl.innerText = totalSolved;
+    totalContestsEl.innerText = totalContests;
+    bestRatingEl.innerText = bestRating;
+    platformCountEl.innerText = platformCount;
+
+    let html = "";
+    for (let p in platforms) {
+      const s = platforms[p];
+      if (!s.username) continue;
+
+      html += `
+        <div class="platform">
+          <h4><i class="fa-brands fa-${p.toLowerCase()}"></i> ${p}</h4>
+          <small>${s.profile || s.username}</small>
+          <div class="stats-grid">
+            <div class="stat-box"><p>Solved</p><h3>${s.solved || 0}</h3></div>
+            <div class="stat-box"><p>Contests</p><h3>${s.contests || 0}</h3></div>
+            <div class="stat-box"><p>Rating</p><h3>${s.rating || 0}</h3></div>
+            <div class="stat-box"><p>Rank</p><h3>${s.rank || 0}</h3></div>
+          </div>
+        </div>
+      `;
+    }
+    platformStats.innerHTML = html || "<p>No platforms linked yet.</p>";
+  }
+
+  async function logout() {
+    try {
+      await axios.post("/logout");
+    } catch {}
+    window.location.replace("login.html");
+  }
+
+  loadUser();
+
+  // Dark mode
+  const toggleBtn = document.getElementById("theme-toggle");
+  toggleBtn.addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+    localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+    toggleBtn.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
+  });
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+    toggleBtn.textContent = "☀️";
+  }
+</script>
+</body>
+</html>

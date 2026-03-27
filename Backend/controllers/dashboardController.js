@@ -12,84 +12,83 @@ const LOCK_TTL = 60;            // 60 sec
 
 /* ================= HELPER: SCRAPER LOGIC ================= */
 async function fetchRealTimeStats(platforms) {
-  try{
-  const stats = JSON.parse(JSON.stringify(platforms));
-  const tasks = [];
+  try {
+    const stats = JSON.parse(JSON.stringify(platforms));
+    const tasks = [];
 
-  if (stats.LeetCode?.username) {
-    tasks.push(
-      fetchLeetCode(stats.LeetCode.username)
-        .then(res => Object.assign(stats.LeetCode, res))
-        .catch(err => console.error("LeetCode Error:", err.message))
-    );
-  }
+    if (stats.LeetCode?.username) {
+      tasks.push(
+        fetchLeetCode(stats.LeetCode.username)
+          .then(res => Object.assign(stats.LeetCode, res))
+          .catch(err => console.error("LeetCode Error:", err.message))
+      );
+    }
 
-  if (stats.Codeforces?.username) {
-    tasks.push(
-      fetchCodeforces(stats.Codeforces.username)
-        .then(res => Object.assign(stats.Codeforces, res))
-        .catch(err => console.error("Codeforces Error:", err.message))
-    );
-  }
+    if (stats.Codeforces?.username) {
+      tasks.push(
+        fetchCodeforces(stats.Codeforces.username)
+          .then(res => Object.assign(stats.Codeforces, res))
+          .catch(err => console.error("Codeforces Error:", err.message))
+      );
+    }
 
-  if (stats.CodeChef?.username) {
-    tasks.push(
-      fetchCodeChef(stats.CodeChef.username)
-        .then(res => {
-          stats.CodeChef.solved = res.solved || 0;
-          stats.CodeChef.rating = res.rating || 0;
-        })
-        .catch(err => console.error("CodeChef Error:", err.message))
-    );
-  }
+    if (stats.CodeChef?.username) {
+      tasks.push(
+        fetchCodeChef(stats.CodeChef.username)
+          .then(res => {
+            stats.CodeChef.solved = res.solved || 0;
+            stats.CodeChef.rating = res.rating || 0;
+          })
+          .catch(err => console.error("CodeChef Error:", err.message))
+      );
+    }
 
-  if (stats.GFG?.username) {
-    tasks.push(
-      fetchGFG(stats.GFG.username)
-        .then(res => Object.assign(stats.GFG, res))
-        .catch(err => console.error("GFG Error:", err.message))
-    );
-  }
+    if (stats.GFG?.username) {
+      // console.log("chala");
+      tasks.push(
+        fetchGFG(stats.GFG.username)
+          .then(res => Object.assign(stats.GFG, res))
+          .catch(err => console.error("GFG Error:", err.message))
+      );
+    }
 
-  await Promise.allSettled(tasks);
-  return stats;
-}
-catch (error) {
+    await Promise.allSettled(tasks);
+    return stats;
+  } catch (error) {
     console.error("fetchRealTimeStats Fatal Error:", error.message);
-    return platforms; // fallback return
+    return platforms;
   }
-};
+}
 
 /* ================= HELPER: AGGREGATION ================= */
 function buildDashboardResponse(platforms) {
-  try{
-  let totalSolved = 0;
-  let totalContests = 0;
-  let bestRating = 0;
-  let count = 0;
+  try {
+    let totalSolved = 0;
+    let totalContests = 0;
+    let bestRating = 0;
+    let count = 0;
 
-  for (let key in platforms) {
-    const p = platforms[key];
-    if (p && p.username) {
-      count++;
-      totalSolved += Number(p.solved || 0);
-      totalContests += Number(p.contests || 0);
-      const r = Number(p.rating || 0);
-      if (!isNaN(r)) bestRating = Math.max(bestRating, r);
+    for (let key in platforms) {
+      const p = platforms[key];
+      if (p && p.username) {
+        count++;
+        totalSolved += Number(p.solved || 0);
+        totalContests += Number(p.contests || 0);
+        const r = Number(p.rating || 0);
+        if (!isNaN(r)) bestRating = Math.max(bestRating, r);
+      }
     }
-  }
 
-  return {
-    platforms,
-    totalSolved,
-    totalContests,
-    bestRating,
-    platformCount: count
-  };
-}
-catch (error) {
+    return {
+      platforms,
+      totalSolved,
+      totalContests,
+      bestRating,
+      platformCount: count
+    };
+  } catch (error) {
     console.error("fetchRealTimeStats Fatal Error:", error.message);
-    return platforms; // fallback return
+    return platforms;
   }
 }
 
@@ -105,13 +104,15 @@ async function refreshDashboard(userId, dataKey, timeKey, lockKey) {
     await redisClient.set(
       dataKey,
       JSON.stringify(responseData),
-      { EX: CACHE_TTL }
+      "EX",
+      CACHE_TTL
     );
 
     await redisClient.set(
       timeKey,
-      String(Date.now()),      // 🔥 FIX: number → string
-      { EX: CACHE_TTL }
+      String(Date.now()),
+      "EX",
+      CACHE_TTL
     );
 
   } catch (err) {
@@ -141,7 +142,6 @@ const saveAccounts = async (req, res) => {
       { returnDocument: "after" }
     );
 
-    // Clear dashboard cache
     await redisClient.del(`dashboard:data:${req.userId}`);
     await redisClient.del(`dashboard:time:${req.userId}`);
 
@@ -174,7 +174,9 @@ const getDashboard = async (req, res) => {
         const lock = await redisClient.set(
           lockKey,
           "1",
-          { NX: true, EX: LOCK_TTL }
+          "NX",
+          "EX",
+          LOCK_TTL
         );
 
         if (lock) {
@@ -194,13 +196,15 @@ const getDashboard = async (req, res) => {
     await redisClient.set(
       dataKey,
       JSON.stringify(responseData),
-      { EX: CACHE_TTL }
+      "EX",
+      CACHE_TTL
     );
 
     await redisClient.set(
       timeKey,
-      String(Date.now()),     // 🔥 FIX
-      { EX: CACHE_TTL }
+      String(Date.now()),
+      "EX",
+      CACHE_TTL
     );
 
     res.json(responseData);

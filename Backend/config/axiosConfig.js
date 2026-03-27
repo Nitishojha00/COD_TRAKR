@@ -1,14 +1,32 @@
 const axios = require("axios");
 
+// 🔥 Create axios instance
 const axiosInstance = axios.create({
+  timeout: 20000, // default timeout
   headers: {
-    "User-Agent":
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0",
-    "Accept":
-      "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-    "Accept-Language": "en-US,en;q=0.9",
-    "Referer": "https://www.google.com/",
+    "Content-Type": "application/json",
+    "User-Agent": "Mozilla/5.0",
+    "Referer": "https://leetcode.com",
+    "Origin": "https://leetcode.com",
   },
 });
+
+// 🔁 Optional: Request interceptor (for logging/debug)
+axiosInstance.interceptors.request.use(
+  (config) => {
+    // console.log(`📤 ${config.method.toUpperCase()} ${config.url}`);
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// 🔁 Optional: Response interceptor
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.log("❌ Axios Error:", error.message);
+    return Promise.reject(error);
+  }
+);
 
 module.exports = axiosInstance;

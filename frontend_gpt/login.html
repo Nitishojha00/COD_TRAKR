@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Login</title>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box;font-family:'Inter',sans-serif}
+body{margin:0;background:#0d0d0d;color:white}
+
+.container{display:flex;height:100vh}
+
+.left{
+ flex:1;
+ background:linear-gradient(180deg,#000,#111);
+ display:flex;
+ flex-direction:column;
+ justify-content:center;
+ padding:60px
+}
+
+.right{flex:1;display:flex;align-items:center;justify-content:center}
+
+.card{
+ width:360px;
+ padding:30px;
+ background:#111;
+ border:1px solid #222;
+ border-radius:12px
+}
+
+input{
+ width:100%;
+ padding:12px;
+ margin-bottom:12px;
+ background:#0a0a0a;
+ border:1px solid #222;
+ color:white
+}
+
+button{
+ width:100%;
+ padding:12px;
+ background:white;
+ color:black;
+ border:none;
+ font-weight:600;
+ cursor:pointer
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="left">
+<h1>Welcome Back</h1>
+<p>Login to continue your journey 🚀</p>
+</div>
+
+<div class="right">
+<div class="card">
+<h2>Login</h2>
+
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+
+<button onclick="login()">Login</button>
+
+<p style="text-align:center;color:#888">
+Don’t have account? <a href="index.html">Signup</a>
+</p>
+</div>
+</div>
+
+</div>
+
+<script>
+const API="http://127.0.0.1:4000";
+axios.defaults.withCredentials=true;
+
+async function login(){
+ try{
+  await axios.post(`${API}/api/auth/login`,{
+    email:document.getElementById("email").value,
+    password:document.getElementById("password").value
+  });
+  window.location.href="dashboard.html";
+ }catch(err){
+  alert("Login failed");
+ }
+}
+</script>
+
+</body>
+</html>

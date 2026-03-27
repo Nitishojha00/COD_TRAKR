@@ -3,8 +3,7 @@ const mongoose = require("mongoose");
 const noteSchema = new mongoose.Schema(
   {
     problemId:{
-      type: Number,
-      // unique:true
+      type: Number
     },
     problemName: {
       type: String,
@@ -13,8 +12,7 @@ const noteSchema = new mongoose.Schema(
       minlength: 3,
       maxlength: 100,
       index: true,
-      lowercase:true,
-      unique:true
+      lowercase:true
     },
 
     problemDescription: {

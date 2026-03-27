@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DSA Problem Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* ----- THEME VARIABLES (matches portfolio) ----- */
+    :root {
+        --bg: #f8f9fb;
+        --ink: #111111;
+        --muted: #555555; /* darker for visibility */
+        --accent: #2d6a4f;
+        --accent-light: #e6f4ea;
+        --border: #dcdcdc;
+        --card-bg: #ffffff;
+        }
+
+    body.dark {
+      --bg: #212428;
+      --ink: #fcfdff;
+      --muted: #f8f8f8;
+      --accent: #22c55e;
+      --accent-light: #241f1f;
+      --border: #0f1011;
+      --card-bg: #19191a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      height: 100vh;
+      overflow: hidden;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .app-container {
+      display: flex;
+      height: 100%;
+      position: relative;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      background: var(--card-bg);
+      border-right: 1px solid var(--border);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s ease;
+      z-index: 50;
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 40;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--ink);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 40px;
+      color: var(--accent);
+      font-size: 1.2rem;
+      font-family: 'DM Serif Display', serif;
+    }
+
+    .nav-links {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      text-align: left;
+      padding: 12px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    .nav-btn i {
+      width: 24px;
+      margin-right: 10px;
+    }
+    
+
+    .nav-btn:hover, .nav-btn.active {
+      background: var(--accent-light);
+       color: var(--ink); /* 🔥 fix */
+    }
+
+    .filter-section {
+      margin-top: 32px;
+    }
+
+    .star-filters {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .star-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--muted);
+      padding: 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    .star-btn:hover {
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    .text-gold {
+      color: #fbbf24;
+      margin-right: 8px;
+    }
+
+    .add-new-btn {
+      margin-top: auto;
+      background: var(--ink);
+      color: var(--bg);
+      border: none;
+      padding: 14px;
+      border-radius: 40px;
+      cursor: pointer;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .add-new-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding: 32px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .search-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 40px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 320px;
+    }
+    
+
+    .search-box input {
+      background: transparent;
+      border: none;
+      color: var(--ink);
+      outline: none;
+      width: 100%;
+      font-size: 14px;
+    }
+
+    .table-container {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 16px 20px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+       background: #f1f3f5;  /* instead of var(--bg) */
+       color: #333;
+       font-size: 13px;
+       font-weight: 600;
+       text-transform: uppercase;
+    }
+
+    
+    tr:hover {
+      background: var(--bg);
+    }
+
+    .tag-badge {
+      background: var(--accent-light);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      margin-right: 6px;
+      display: inline-block;
+    }
+
+    .link-icon {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .action-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 6px;
+      font-size: 16px;
+    }
+
+    .delete-btn:hover {
+      color: #ef4444;
+    }
+
+    .edit-btn:hover {
+      color: var(--accent);
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+      width: 600px;
+      padding: 30px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+
+    .modal-content.view-card-large {
+      width: 95%;
+      max-width: 1200px;
+      height: 90%;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header-fixed {
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--border);
+      background: var(--card-bg);
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      border-radius: 24px 24px 0 0;
+    }
+
+    .modal-body {
+      padding: 32px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .big-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+
+    .meta-info {
+      font-size: 14px;
+      color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .section-title {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .text-content {
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--ink);
+      white-space: pre-wrap;
+    }
+
+    .note-box-wide, .mistake-box-wide {
+      padding: 24px;
+      border-radius: 16px;
+    }
+
+    .note-box-wide {
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+
+    .mistake-box-wide {
+      background: rgba(239, 68, 68, 0.05);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .close {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      cursor: pointer;
+      font-size: 24px;
+      color: var(--muted);
+    }
+
+    .solve-btn-massive {
+      background: var(--ink);
+      color: var(--bg);
+      padding: 10px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 40px;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--ink);
+      padding: 12px;
+      border-radius: 12px;
+      outline: none;
+    }
+
+    .row {
+      display: flex;
+      gap: 16px;
+    }
+
+    .half {
+      flex: 1;
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: var(--ink);
+      color: var(--bg);
+      border: none;
+      padding: 12px;
+      border-radius: 40px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
+    .loader {
+      border: 3px solid rgba(0,0,0,0.1);
+      border-top: 3px solid var(--accent);
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px auto;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: flex-end;
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .pagination button {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--ink);
+      padding: 8px 16px;
+      border-radius: 40px;
+      cursor: pointer;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .action-bar-modal {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .icon-btn-modal {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      min-width: 100px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        left: -100%;
+        top: 0;
+        height: 100%;
+        width: 80%;
+        max-width: 300px;
+        box-shadow: 2px 0 12px rgba(0,0,0,0.1);
+      }
+      .sidebar.active { left: 0; }
+      .mobile-menu-btn { display: block; }
+      .main-content { padding: 70px 16px 20px 16px; }
+      .search-box { width: 100%; }
+      th:nth-child(1), td:nth-child(1), /* ID */
+      th:nth-child(3), td:nth-child(3), /* Tags */
+      th:nth-child(4), td:nth-child(4), /* Importance */
+      th:nth-child(5), td:nth-child(5), /* Link */
+      th:nth-child(6), td:nth-child(6)  /* Actions */
+      { display: none; }
+      th:nth-child(2), td:nth-child(2) { display: table-cell; }
+      .modal-content.view-card-large { width: 100%; height: 100%; border-radius: 0; }
+      .modal-header-fixed { flex-direction: column; gap: 16px; padding: 20px; }
+      .big-title { font-size: 24px; }
+      .modal-body { padding: 20px; }
+      .row { flex-direction: column; gap: 0; }
+      .action-bar-modal { flex-direction: column; }
+    }
+
+    /* Theme toggle in sidebar */
+    .theme-toggle-btn {
+      margin-top: 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 40px;
+      padding: 10px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+  <button class="mobile-menu-btn" onclick="toggleSidebar()">
+    <i class="fa-solid fa-bars"></i>
+  </button>
+
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"> 
+      <div class="brand">
+        <i class="fa-solid fa-code"></i>
+        <h2>DSA Tracker</h2>
+        <i class="fa-solid fa-times" style="margin-left:auto; cursor:pointer; display:none;" onclick="toggleSidebar()" id="sidebarClose"></i>
+      </div>
+      
+      <nav class="nav-links">
+        <button class="nav-btn active" onclick="loadView('importance'); toggleSidebar()">
+          <i class="fa-solid fa-fire"></i> Top Priority
+        </button>
+        <button class="nav-btn" onclick="loadView('all'); toggleSidebar()">
+          <i class="fa-solid fa-layer-group"></i> All Problems
+        </button>
+      </nav>
+
+      <div class="filter-section">
+        <h3>Filter by Stars</h3>
+        <div class="star-filters">
+          <button onclick="filterByStars(3); toggleSidebar()" class="star-btn"><i class="fa-solid fa-star text-gold"></i> 3 Stars</button>
+          <button onclick="filterByStars(2); toggleSidebar()" class="star-btn"><i class="fa-solid fa-star text-gold"></i> 2 Stars</button>
+          <button onclick="filterByStars(1); toggleSidebar()" class="star-btn"><i class="fa-solid fa-star text-gold"></i> 1 Star</button>
+          <button onclick="filterByStars(0); toggleSidebar()" class="star-btn"><i class="fa-solid fa-star text-gold"></i> 0 Star</button>
+        </div>
+      </div>
+
+      <button class="add-new-btn" onclick="openCreateModal(); toggleSidebar()">
+        <i class="fa-solid fa-plus"></i> New Problem
+      </button>
+      <a href="dashboard.html">
+        <button class="add-new-btn" style="margin: 30px;">
+          <i class="fa-solid fa-chart-line"></i> Dashboard
+        </button>
+      </a>
+      <button class="add-new-btn" onclick="logout()" style="background-color: #ef4444;">
+        <i class="fa-solid fa-right-from-bracket"></i> Log Out
+      </button>
+
+      <!-- Theme toggle inside sidebar (matches portfolio style) -->
+      <button class="theme-toggle-btn" id="theme-toggle">
+        <i class="fa-solid fa-moon"></i> Dark Mode
+      </button>
+    </aside>
+
+    <main class="main-content">
+      <header>
+        <h1 id="page-title">Dashboard</h1>
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass search-btn-icon" id="searchIconBtn"></i>
+          <input type="text" id="tagSearchInput" placeholder="Search by tag (e.g. array)...">
+        </div>
+      </header>
+      
+      <div id="loader" class="loader hidden"></div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th width="5%">ID</th>
+              <th width="30%">Problem Name</th>
+              <th width="20%">Tags</th>
+              <th width="15%">Importance</th>
+              <th width="10%">Link</th>
+              <th width="10%">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="problemTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="pagination">
+        <button id="prevBtn">Previous</button>
+        <span id="pageIndicator"></span>
+        <button id="nextBtn">Next</button>
+      </div>
+    </main>
+  </div>
+
+  <div id="createModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('createModal')">&times;</span>
+      <h2 id="modalTitle">Add New Problem</h2>
+      <form id="createForm">
+        <input type="hidden" name="problemId" id="editProblemId">
+
+        <div class="row">
+          <div class="form-group half">
+            <label>Problem Name *</label>
+            <input type="text" name="problemName" id="inpName" required>
+          </div>
+          <div class="form-group half">
+            <label>Problem Link</label>
+            <input type="url" name="problemLink" id="inpLink">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="form-group half">
+            <label>Tags (comma separated)</label>
+            <input type="text" name="tags" id="inpTags">
+          </div>
+          <div class="form-group half">
+            <label>Importance</label>
+            <select name="stars" id="inpStars">
+              <option value="0">0 - Lowest</option>
+              <option value="1">1 - Low</option>
+              <option value="2">2 - Medium</option>
+              <option value="3">3 - High</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea name="problemDescription" id="inpDesc" rows="2"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Solution / Notes</label>
+          <textarea name="notes" id="inpNotes" rows="4"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Mistakes to Avoid</label>
+          <textarea name="mistake" id="inpMistake" rows="2"></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn" id="modalSubmitBtn">Save Problem</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="viewModal" class="modal">
+    <div class="modal-content view-card-large" id="viewContent"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="scriptNote.js"></script>
+
+  <script>
+    // Dark mode toggle (synced with portfolio)
+    const toggleBtn = document.getElementById("theme-toggle");
+    toggleBtn.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+      const isDark = document.body.classList.contains("dark");
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+      toggleBtn.innerHTML = isDark ? '<i class="fa-regular fa-sun"></i> Light Mode' : '<i class="fa-solid fa-moon"></i> Dark Mode';
+    });
+    if (localStorage.getItem("theme") === "dark") {
+      document.body.classList.add("dark");
+      toggleBtn.innerHTML = '<i class="fa-regular fa-sun"></i> Light Mode';
+    } else {
+      toggleBtn.innerHTML = '<i class="fa-solid fa-moon"></i> Dark Mode';
+    }
+
+    // Keep the existing sidebar toggle function (already in scriptNote.js)
+    function toggleSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      sidebar.classList.toggle("active");
+    }
+  </script>
+</body>
+</html>

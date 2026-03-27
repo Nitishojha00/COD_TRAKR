@@ -1,39 +1,33 @@
-const axios = require("axios");
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  host: "email-smtp.eu-north-1.amazonaws.com", // same region
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER, // SES SMTP username
+    pass: process.env.SMTP_PASS, // SES SMTP password
+  },
+});
 
 const sendEmail = async (email, otp) => {
   try {
-    const res = await axios.post(
-      "https://api.brevo.com/v3/smtp/email",
-      {
-        sender: {
-          name: "Nitish",
-          email: "nitishojha00@gmail.com"
-        },
-        to: [{ email }],
-        subject: "Email Verification OTP",
-        htmlContent: `
-          <h2>Email Verification</h2>
-          <h1>${otp}</h1>
-          <p>This OTP is valid for 2 minutes.</p>
-        `
-      },
-      {
-        headers: {
-          "api-key": process.env.BREVO_API_KEY, // 🔑 API KEY
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        }
-      }
-    );
+    const info = await transporter.sendMail({
+      from: `"Nitish" <no-reply@nitishojha.in>`, // ⚠️ must be verified domain
+      to: email,
+      subject: "Email Verification OTP",
+      html: `
+        <h2>Email Verification</h2>
+        <h1>${otp}</h1>
+        <p>This OTP is valid for 2 minutes.</p>
+      `,
+    });
 
-    return res.data;
+    console.log("✅ Email sent:", info.messageId);
+    return info;
 
   } catch (error) {
-    console.error("sendEmail Error:", 
-      error.response?.data || error.message
-    );
-
-    // throw again so controller can handle it
+    console.error("❌ sendEmail Error:", error.message);
     throw new Error("Email sending failed");
   }
 };

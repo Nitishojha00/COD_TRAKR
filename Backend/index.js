@@ -31,27 +31,16 @@ app.post("/logout", (req, res) => {
   res.json({ message: "Logged out" });
 });
 
-// 2. BETTER SERVER STARTUP
+// Server startup
 const InitializeConnection = async () => {
     try {
-        // Connect to MongoDB
         await main();
         console.log("✅ MongoDB Connected");
-
-        // Try connecting to Redis, but don't crash if it fails (optional safety)
-        try {
-            await redisClient.connect();
-            console.log("✅ Redis Connected");
-        } catch (redisErr) {
-            console.error("⚠️ Redis failed to connect (Server will still start):", redisErr.message);
-        }
-
-        // Start Server
+        console.log("✅ Redis client imported (connection status: " + redisClient.status + ")");
         const PORT = process.env.PORT || 4000;
         app.listen(PORT, () => {
             console.log(`🚀 Server listening at http://127.0.0.1:${PORT}`);
         });
-
     } catch (err) {
         console.error("❌ CRITICAL DB ERROR:", err);
     }
