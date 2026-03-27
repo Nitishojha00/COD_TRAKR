@@ -2,7 +2,7 @@ const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
   host: "email-smtp.eu-north-1.amazonaws.com", // same region
-  port: 587,
+  port: 465,
   secure: false,
   auth: {
     user: process.env.SMTP_USER, // SES SMTP username
