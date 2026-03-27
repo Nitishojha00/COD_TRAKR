@@ -8,7 +8,7 @@ const validate = require("../utils/validator");
 
 /* TEMP OTP STORE (simple testing) */
 let pendingSignup = null;
-const limit = 10;
+const limit = 20;
 
 const redis = require("../config/redis");
 const crypto = require("crypto");
@@ -63,13 +63,13 @@ const signUpGenerateOTP = async (req, res) => {
     const count = await redis.incr(limitKey);
 
     if (count === 1) {
-      await redis.expire(limitKey, 3 * 60 * 60); // 3 hours
+      await redis.expire(limitKey, 1 * 60 * 60); // 1 hours
     }
 
     if (count > limit) {
       return res
         .status(429)
-        .send("OTP limit exceeded. Try again after 3 hours.");
+        .send("OTP limit exceeded. Try again after 1 hours.");
     }
 
     /* ================= OTP GENERATION ================= */
