@@ -1,4 +1,4 @@
-const API = "https://codtrakr.nitishojha.in";
+const API = "https://codolio-clone.onrender.com";
   axios.defaults.withCredentials = true;
 
   async function login() {

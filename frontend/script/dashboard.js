@@ -1,6 +1,6 @@
 
 
-  const API = "https://codtrakr.nitishojha.in";
+  const API = "https://codolio-clone.onrender.com";
   axios.defaults.baseURL = API;
   axios.defaults.withCredentials = true;
 

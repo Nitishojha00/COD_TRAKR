@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://codtrakr.nitishojha.in"; 
+const API_BASE_URL = "https://codolio-clone.onrender.com"; 
 axios.defaults.withCredentials = true;
 
 let currentState = { view: 'importance', page: 1, tag: '', stars: 0 };
