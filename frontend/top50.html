@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Top 50 Interview Problems | CodeTracker</title>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="stylesheet" href="./style/top50.css">
+</head>
+
+<body>
+
+    <div class="nav">
+        <div class="logo">
+            <i class="fa-solid fa-code"></i> CodeTracker
+        </div>
+        <div class="nav-links">
+            <a href="dashboard.html">Dashboard</a>
+            <a href="Notes.html">Notes</a>
+            <a href="top50.html" class="active">Top 50</a>
+        </div>
+        <button class="theme-toggle" id="theme-toggle">🌙</button>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>Top 50 Interview Problems</h1>
+            <p>Master these 50 essential problems for your next big interview.</p>
+            <div class="progress-container">
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <div class="progress-text" id="progress-text">0/50 (0%)</div>
+            </div>
+        </div>
+
+        <div id="problems-container">
+
+        </div>
+    </div>
+
+    <script src="./script/top50.js"></script>
+</body>
+
+</html>
