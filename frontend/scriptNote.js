@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://codolio-clone.onrender.com"; 
+const API_BASE_URL = "https://cod-trakr.vercel.app"; 
 axios.defaults.withCredentials = true;
 
 let currentState = { view: 'importance', page: 1, tag: '', stars: 0 };

@@ -8,7 +8,8 @@ const dotenv = require('dotenv');
 const cookieParser = require("cookie-parser");
 const authRoute = require('./routes/authRoute');
 const dashRouter = require('./routes/dashRoute');
-const noteRouter = require('./routes/notesRoutes')
+const noteRouter = require('./routes/notesRoutes');
+const chatRoute = require("./routes/chatRoute");
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use(cookieParser());
 app.use('/api/auth', authRoute);
 app.use("/api/dashboard", dashRouter);
 app.use("/api/notes", noteRouter);
+app.use("/api/chat", chatRoute);
 
 app.post("/logout", (req, res) => {
   res.clearCookie("token");
