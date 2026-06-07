@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://cod-trakr.vercel.app"; 
+const API_BASE_URL = "https://cod-trakr-sor4.onrender.com"; 
 axios.defaults.withCredentials = true;
 
 let currentState = { view: 'importance', page: 1, tag: '', stars: 0 };
