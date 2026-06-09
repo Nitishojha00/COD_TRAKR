@@ -1,3 +1,5 @@
+const axios = require("axios");
+
 const axiosInstance = axios.create({
   headers: {
     "User-Agent":
@@ -7,3 +9,5 @@ const axiosInstance = axios.create({
     "Accept-Language": "en-US,en;q=0.9",
   },
 });
+
+module.exports = axiosInstance;
