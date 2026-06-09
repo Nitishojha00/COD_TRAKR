@@ -52,7 +52,7 @@ App runs on http://localhost:3000
 - Dashboard: link accounts (LeetCode, Codeforces, CodeChef, GFG), show aggregated stats
 - AI Coach: send messages, load history on mount, clear chat, markdown rendering
 
-## Changes from original
+## Upgraded To React
 
 - Pure React (no plain HTML/JS files)
 - React Router for navigation — no page reloads between pages

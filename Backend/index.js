@@ -1,9 +1,8 @@
-/* ================= UPDATED APP.JS ================= */
 const express = require('express');
 const app = express();
 const cors = require("cors");
 const main = require('./config/db');
-const redisClient = require('./config/redis'); // ensure this file handles errors too
+const redisClient = require('./config/redis');
 const dotenv = require('dotenv');
 const cookieParser = require("cookie-parser");
 const authRoute = require('./routes/authRoute');
@@ -13,13 +12,15 @@ const chatRoute = require("./routes/chatRoute");
 
 dotenv.config();
 
-// 1. FIX CORS: Add 5500 (Live Server default)
 app.use(cors({
-  origin: ["http://localhost:3000","http://127.0.0.1:3000","https://codtrakr.nitishojha.in" , "http://127.0.0.1:5500","https://cod-trakr.vercel.app"], 
+  origin: ["http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "https://codtrakr.nitishojha.in" ,
+             "http://127.0.0.1:5500",
+             "https://cod-trakr.vercel.app"], 
   credentials: true 
 }));
 
-// app.js
 app.use(express.json());
 app.use(cookieParser());
 
@@ -33,7 +34,6 @@ app.post("/logout", (req, res) => {
   res.json({ message: "Logged out" });
 });
 
-// 2. BETTER SERVER STARTUP
 const InitializeConnection = async () => {
     try {
         // Connect to MongoDB

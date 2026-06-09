@@ -12,26 +12,16 @@ const {
 const auth  = require('../middlewares/auth');
 const router = express.Router();
 
-/* CREATE NEW PROBLEM */
-router.post("/new", auth, createProblem); //✅
 
-/* GET ALL PROBLEMS (main page) */
-router.get("/problem", auth, getAllProblem);   //✅
-
-// Get Problem According to its impoortance 
-router.get("/problemByImportance", auth, getElementByImportance);    //✅
+router.post("/new", auth, createProblem);
+router.get("/problem", auth, getAllProblem); 
+router.get("/problemByImportance", auth, getElementByImportance);   
+router.get("/problemById/:problemId", auth, getSingleProblem);  
+router.put("/problem/:problemId", auth, updateProblem);
+router.delete("/problem/:problemId", auth, deleteProblem); 
 
 /* FILTERS */
-router.get("/tag/:tag", auth, getElementByTag);            // /notes/tag/binary-search    //✅
-router.get("/stars/:stars", auth, getElementBySpecificStar); // /notes/stars/3   //✅
-
-/* GET SINGLE PROBLEM */
-router.get("/problemById/:problemId", auth, getSingleProblem);   //✅
-
-/* UPDATE PROBLEM */
-router.put("/problem/:problemId", auth, updateProblem); //✅
-
-/* DELETE PROBLEM */
-router.delete("/problem/:problemId", auth, deleteProblem); //✅
+router.get("/tag/:tag", auth, getElementByTag);          
+router.get("/stars/:stars", auth, getElementBySpecificStar); 
 
 module.exports = router;

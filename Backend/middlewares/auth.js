@@ -4,7 +4,7 @@ const redisClient = require("../config/redis");
 module.exports = async (req, res, next) => {
   try {
     // console.log("request reached")
-    // console.log("AUTH HEADER:", req.headers.authorization); // 👈 DEBUG
+    // console.log("AUTH HEADER:", req.headers.authorization); 
     const token = req.cookies.token;
     // console.log(token);
     if (!token) throw new Error("No token");

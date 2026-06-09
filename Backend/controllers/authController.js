@@ -2,12 +2,10 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const sendEmail = require("../utils/sendEmail");
 const generateOTP = require("../utils/generateOTP");
-const checkOtpRateLimit = require("../utils/otpRateLimit");
 const jwt = require("jsonwebtoken");
 const validate = require("../utils/validator")
 
 /* TEMP OTP STORE (simple testing) */
-let pendingSignup = null;
 const limit = 4;
 
 const redis = require("../config/redis");
@@ -76,7 +74,10 @@ const signUpGenerateOTP = async (req, res) => {
 
   /* ================= OTP GENERATION ================= */
   const otp = generateOTP();
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const [hashedPassword, hashedOTP] = await Promise.all([
+      bcrypt.hash(password, 10),
+      bcrypt.hash(otp, 10)
+  ]);
   const signupId = crypto.randomUUID();
 
   /* ================= STORE TEMP DATA ================= */
@@ -86,13 +87,25 @@ const signUpGenerateOTP = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      otp
+      otp: hashedOTP
     }),
-    { EX: 120 } // 2 minutes
+    { EX: 5*60 } // 5 minutes
   );
 
+  try {
   /* ================= SEND EMAIL ================= */
-  await sendEmail(email, otp);
+      await sendEmail(email, otp);
+    }
+    catch(err) {
+
+      // rollback
+      await Promise.allSettled([
+        redis.decr(limitKey),
+        redis.del(`signup:${signupId}`)
+      ]);
+
+      throw err;
+    }
 
   res.json({
     message: "OTP sent",
@@ -118,7 +131,8 @@ const signUpVerifyOTP = async (req, res) => {
 
   const parsed = JSON.parse(data);
 
-  if (parsed.otp !== otp) {
+  const isMatch = await bcrypt.compare(otp, parsed.otp);
+  if (!isMatch) {
     return res.status(400).send("Invalid OTP");
   }
   

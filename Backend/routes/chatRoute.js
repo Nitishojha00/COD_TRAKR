@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { getChatHistory, sendMessage, clearChat } = require("../controllers/chatController");
-const auth = require("../middlewares/auth"); // ✅ FIXED: your middleware is auth.js
+const auth = require("../middlewares/auth"); 
 
 // All routes are protected
 router.use(auth);
