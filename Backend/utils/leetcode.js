@@ -1,49 +1,96 @@
 const axios = require("../config/axiosConfig");
-const redisClient = require("../config/redis"); // your redis connection
+const redisClient = require("../config/redis");
 
 async function fetchLeetCode(username) {
-  const result = { solved: 0, rating: 0, rank: 0, contests: 0 };
+  const result = {
+    solved: 0,
+    rating: 0,
+    rank: 0,
+    contests: 0,
+  };
 
   try {
     const cacheKey = `leetcode:${username}`;
 
-    // ✅ 1. Check Redis cache first
+    // Cache Check
     const cached = await redisClient.get(cacheKey);
+
     if (cached) {
       console.log("⚡ LeetCode served from cache");
       return JSON.parse(cached);
     }
 
-    // ✅ 2. Fetch from public stats API (Less blocked than GraphQL)
-    const response = await axios.get(
-      `https://leetcode-stats-api.herokuapp.com/${username}`,
+    const query = `
+      query getUser($username:String!){
+        matchedUser(username:$username){
+          profile{
+            ranking
+          }
+          submitStats{
+            acSubmissionNum{
+              difficulty
+              count
+            }
+          }
+        }
+        userContestRanking(username:$username){
+          rating
+          attendedContestsCount
+        }
+      }
+    `;
+
+    const { data } = await axios.post(
+      "https://leetcode.com/graphql",
       {
-        timeout: 10000,
+        query,
+        variables: { username },
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        timeout: 15000,
       }
     );
 
-    const data = response.data;
+    const user = data?.data?.matchedUser;
+    const contest = data?.data?.userContestRanking;
 
-    if (!data || data.status === "error") {
-      console.log("❌ Invalid LeetCode username or API error");
+    if (!user) {
+      console.log("❌ Invalid LeetCode username");
       return result;
     }
 
-    result.solved = data.totalSolved || 0;
-    result.rating = Math.floor(data.rating || 0);
-    result.rank = data.ranking || 0;
-    result.contests = data.attendedContestsCount || 0;
+    const allSolved =
+      user.submitStats?.acSubmissionNum?.find(
+        (item) => item.difficulty === "All"
+      );
 
-    // ✅ 3. Cache for 15 minutes
-    await redisClient.setEx(cacheKey, 900, JSON.stringify(result));
+    result.solved = allSolved?.count || 0;
+    result.rank = user.profile?.ranking || 0;
+    result.rating = Math.floor(contest?.rating || 0);
+    result.contests =
+      contest?.attendedContestsCount || 0;
+
+    // Cache for 24 hours
+    await redisClient.setEx(
+      cacheKey,
+      86400,
+      JSON.stringify(result)
+    );
 
     console.log("✅ LeetCode fetched & cached");
 
+    return result;
   } catch (err) {
-    console.log("❌ LeetCode fetch failed:", err.message);
-  }
+    console.log(
+      "❌ LeetCode fetch failed:",
+      err.response?.data || err.message
+    );
 
-  return result;
+    return result;
+  }
 }
 
 module.exports = fetchLeetCode;

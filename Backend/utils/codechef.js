@@ -1,4 +1,5 @@
 const axios = require("axios");
+const redisClient = require("../config/redis");
 const cheerio = require("cheerio");
 const { chromium } = require("playwright");
 const puppeteer = require("puppeteer-extra");
@@ -28,17 +29,40 @@ async function getPuppeteer() {
   return puppeteerBrowser;
 }
 
+/* ================= CACHE HELPER ================= */
+
+async function saveAndReturn(cacheKey, result) {
+  await redisClient.setEx(
+    cacheKey,
+    86400, // 1 day
+    JSON.stringify(result)
+  );
+
+  return result;
+}
+
 /* ================= MAIN FUNCTION ================= */
 
 async function fetchCodeChef(user) {
   const result = { solved: 0, rating: 0 };
   const url = `https://www.codechef.com/users/${user}`;
+  const cacheKey = `codechef:${user}`;
+
+  /* ================= CACHE CHECK ================= */
+
+  const cached = await redisClient.get(cacheKey);
+
+  if (cached) {
+    console.log("⚡ CodeChef served from cache");
+    return JSON.parse(cached);
+  }
 
   console.log(`🔍 CODECHEF: Attempting for ${user}...`);
 
   /* =====================================================
      STRATEGY 1: AXIOS + CHEERIO
   ===================================================== */
+
   try {
     const res = await axios.get(url, {
       headers: {
@@ -51,11 +75,9 @@ async function fetchCodeChef(user) {
 
     const $ = cheerio.load(res.data);
 
-    // Rating (more reliable selector)
     const ratingText = $(".rating-number").first().text().trim();
     if (ratingText) result.rating = parseInt(ratingText);
 
-    // Problems solved (DOM based search)
     const solvedText = $("body").text();
     const match =
       solvedText.match(/Total Problems Solved:\s*(\d+)/i) ||
@@ -65,15 +87,16 @@ async function fetchCodeChef(user) {
 
     if (result.rating > 0 || result.solved > 0) {
       console.log("✅ CODECHEF (Axios success)");
-      return result;
+      return await saveAndReturn(cacheKey, result);
     }
   } catch (err) {
-    console.log("⚠️ Axios failed, trying Playwright...");
+    console.log("Codechef ⚠️ Axios failed, trying Playwright...");
   }
 
   /* =====================================================
      STRATEGY 2: PLAYWRIGHT
   ===================================================== */
+
   try {
     const browser = await getPlaywright();
     const page = await browser.newPage();
@@ -102,15 +125,16 @@ async function fetchCodeChef(user) {
 
     if (result.rating > 0 || result.solved > 0) {
       console.log("✅ CODECHEF (Playwright success)");
-      return result;
+      return await saveAndReturn(cacheKey, result);
     }
   } catch (err) {
-    console.log("⚠️ Playwright failed, trying Puppeteer...");
+    console.log("Codechef ⚠️ Playwright failed, trying Puppeteer...");
   }
 
   /* =====================================================
      STRATEGY 3: PUPPETEER STEALTH
   ===================================================== */
+
   try {
     const browser = await getPuppeteer();
     const page = await browser.newPage();
@@ -143,13 +167,13 @@ async function fetchCodeChef(user) {
 
     if (result.rating > 0 || result.solved > 0) {
       console.log("✅ CODECHEF (Puppeteer success)");
-      return result;
+      return await saveAndReturn(cacheKey, result);
     }
   } catch (err) {
-    console.log("❌ Puppeteer failed");
+    console.log("❌ Codechef Puppeteer failed");
   }
 
-  console.log("❌ All strategies failed");
+  console.log("❌ Codechef All strategies failed");
   return result;
 }
 

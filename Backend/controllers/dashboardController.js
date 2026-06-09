@@ -1,123 +1,119 @@
 const User = require("../models/User");
-const redisClient = require("../config/redis");
 const fetchLeetCode = require("../utils/leetcode");
 const fetchCodeforces = require("../utils/codeforces");
 const fetchCodeChef = require("../utils/codechef");
 const fetchGFG = require("../utils/gfg");
 
-/* ================= CONSTANTS ================= */
-const REFRESH_THRESHOLD = 1800; // 30 min
-const CACHE_TTL = 86400;        // 24 hours
-const LOCK_TTL = 60;            // 60 sec
+/* ================= FETCH PLATFORM STATS ================= */
 
-/* ================= HELPER: SCRAPER LOGIC ================= */
 async function fetchRealTimeStats(platforms) {
-  try{
-  const stats = JSON.parse(JSON.stringify(platforms));
-  const tasks = [];
-
-  if (stats.LeetCode?.username) {
-    tasks.push(
-      fetchLeetCode(stats.LeetCode.username)
-        .then(res => Object.assign(stats.LeetCode, res))
-        .catch(err => console.error("LeetCode Error:", err.message))
-    );
-  }
-
-  if (stats.Codeforces?.username) {
-    tasks.push(
-      fetchCodeforces(stats.Codeforces.username)
-        .then(res => Object.assign(stats.Codeforces, res))
-        .catch(err => console.error("Codeforces Error:", err.message))
-    );
-  }
-
-  if (stats.CodeChef?.username) {
-    tasks.push(
-      fetchCodeChef(stats.CodeChef.username)
-        .then(res => {
-          stats.CodeChef.solved = res.solved || 0;
-          stats.CodeChef.rating = res.rating || 0;
-        })
-        .catch(err => console.error("CodeChef Error:", err.message))
-    );
-  }
-
-  if (stats.GFG?.username) {
-    tasks.push(
-      fetchGFG(stats.GFG.username)
-        .then(res => Object.assign(stats.GFG, res))
-        .catch(err => console.error("GFG Error:", err.message))
-    );
-  }
-
-  await Promise.allSettled(tasks);
-  return stats;
-}
-catch (error) {
-    console.error("fetchRealTimeStats Fatal Error:", error.message);
-    return platforms; // fallback return
-  }
-};
-
-/* ================= HELPER: AGGREGATION ================= */
-function buildDashboardResponse(platforms) {
-  try{
-  let totalSolved = 0;
-  let totalContests = 0;
-  let bestRating = 0;
-  let count = 0;
-
-  for (let key in platforms) {
-    const p = platforms[key];
-    if (p && p.username) {
-      count++;
-      totalSolved += Number(p.solved || 0);
-      totalContests += Number(p.contests || 0);
-      const r = Number(p.rating || 0);
-      if (!isNaN(r)) bestRating = Math.max(bestRating, r);
-    }
-  }
-
-  return {
-    platforms,
-    totalSolved,
-    totalContests,
-    bestRating,
-    platformCount: count
-  };
-}
-catch (error) {
-    console.error("fetchRealTimeStats Fatal Error:", error.message);
-    return platforms; // fallback return
-  }
-}
-
-/* ================= BACKGROUND REFRESH ================= */
-async function refreshDashboard(userId, dataKey, timeKey, lockKey) {
   try {
-    const user = await User.findById(userId);
-    if (!user) return;
+    const stats = JSON.parse(JSON.stringify(platforms));
+    const tasks = [];
 
-    const livePlatforms = await fetchRealTimeStats(user.platforms);
-    const responseData = buildDashboardResponse(livePlatforms);
+    if (stats.LeetCode?.username) {
+      tasks.push(
+        fetchLeetCode(stats.LeetCode.username)
+          .then((res) => Object.assign(stats.LeetCode, res))
+          .catch((err) =>
+            console.error("LeetCode Error:", err.message)
+          )
+      );
+    }
 
-    await redisClient.set(
-      dataKey,
-      JSON.stringify(responseData),
-      { EX: CACHE_TTL }
+    if (stats.Codeforces?.username) {
+      tasks.push(
+        fetchCodeforces(stats.Codeforces.username)
+          .then((res) => Object.assign(stats.Codeforces, res))
+          .catch((err) =>
+            console.error("Codeforces Error:", err.message)
+          )
+      );
+    }
+
+    if (stats.CodeChef?.username) {
+      tasks.push(
+        fetchCodeChef(stats.CodeChef.username)
+          .then((res) => {
+            stats.CodeChef.solved = res.solved || 0;
+            stats.CodeChef.rating = res.rating || 0;
+          })
+          .catch((err) =>
+            console.error("CodeChef Error:", err.message)
+          )
+      );
+    }
+
+    if (stats.GFG?.username) {
+      tasks.push(
+        fetchGFG(stats.GFG.username)
+          .then((res) => Object.assign(stats.GFG, res))
+          .catch((err) =>
+            console.error("GFG Error:", err.message)
+          )
+      );
+    }
+
+    await Promise.allSettled(tasks);
+    return stats;
+
+  } catch (error) {
+    console.error(
+      "fetchRealTimeStats Fatal Error:",
+      error.message
     );
 
-    await redisClient.set(
-      timeKey,
-      String(Date.now()),      // 🔥 FIX: number → string
-      { EX: CACHE_TTL }
+    return platforms;
+  }
+}
+
+/* ================= AGGREGATION ================= */
+
+function buildDashboardResponse(platforms) {
+  try {
+    let totalSolved = 0;
+    let totalContests = 0;
+    let bestRating = 0;
+    let platformCount = 0;
+
+    for (const key in platforms) {
+      const platform = platforms[key];
+
+      if (!platform?.username) continue;
+
+      platformCount++;
+
+      totalSolved += Number(platform.solved || 0);
+      totalContests += Number(platform.contests || 0);
+
+      const rating = Number(platform.rating || 0);
+
+      if (!isNaN(rating)) {
+        bestRating = Math.max(bestRating, rating);
+      }
+    }
+
+    return {
+      platforms,
+      totalSolved,
+      totalContests,
+      bestRating,
+      platformCount,
+    };
+
+  } catch (error) {
+    console.error(
+      "buildDashboardResponse Error:",
+      error.message
     );
 
-  } catch (err) {
-    console.error("Dashboard refresh failed:", err);
-  } finally {
-    await redisClient.del(lockKey);
+    return {
+      platforms,
+      totalSolved: 0,
+      totalContests: 0,
+      bestRating: 0,
+      platformCount: 0,
+    };
   }
 }
 
@@ -125,95 +121,75 @@ async function refreshDashboard(userId, dataKey, timeKey, lockKey) {
 
 const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select("-password");
+    const user = await User.findById(req.userId)
+      .select("-password");
+
     res.json(user);
+
   } catch (err) {
-    res.status(500).json({ message: "Server Error" });
+    console.error(err);
+
+    res.status(500).json({
+      message: "Server Error",
+    });
   }
 };
 
 const saveAccounts = async (req, res) => {
   try {
     const { platforms } = req.body;
+
     await User.findByIdAndUpdate(
       req.userId,
       { platforms },
       { returnDocument: "after" }
     );
 
-    // Clear dashboard cache
-    await redisClient.del(`dashboard:data:${req.userId}`);
-    await redisClient.del(`dashboard:time:${req.userId}`);
+    res.json({
+      message: "Saved",
+    });
 
-    res.json({ message: "Saved" });
   } catch (err) {
-    res.status(500).json({ message: "Server Error" });
+    console.error(err);
+
+    res.status(500).json({
+      message: "Server Error",
+    });
   }
 };
 
 const getDashboard = async (req, res) => {
   try {
-    const userId = req.userId;
+    const user = await User.findById(req.userId);
 
-    const dataKey = `dashboard:data:${userId}`;
-    const timeKey = `dashboard:time:${userId}`;
-    const lockKey = `dashboard:lock:${userId}`;
-
-    const cachedData = await redisClient.get(dataKey);
-    const lastFetch = await redisClient.get(timeKey);
-    const now = Date.now();
-
-    /* ===== CACHE HIT ===== */
-    if (cachedData) {
-      res.json(JSON.parse(cachedData));
-
-      if (
-        !lastFetch ||
-        (now - Number(lastFetch)) > (REFRESH_THRESHOLD * 1000)
-      ) {
-        const lock = await redisClient.set(
-          lockKey,
-          "1",
-          { NX: true, EX: LOCK_TTL }
-        );
-
-        if (lock) {
-          refreshDashboard(userId, dataKey, timeKey, lockKey);
-        }
-      }
-      return;
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
     }
 
-    /* ===== CACHE MISS ===== */
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    const livePlatforms = await fetchRealTimeStats(user.platforms);
-    const responseData = buildDashboardResponse(livePlatforms);
-
-    await redisClient.set(
-      dataKey,
-      JSON.stringify(responseData),
-      { EX: CACHE_TTL }
+    const livePlatforms = await fetchRealTimeStats(
+      user.platforms
     );
 
-    await redisClient.set(
-      timeKey,
-      String(Date.now()),     // 🔥 FIX
-      { EX: CACHE_TTL }
-    );
+    const responseData =
+      buildDashboardResponse(livePlatforms);
 
     res.json(responseData);
 
   } catch (err) {
     console.error("Dashboard Error:", err);
-    res.status(500).json({ message: "Server Error" });
+
+    res.status(500).json({
+      message: "Server Error",
+    });
   }
 };
 
 /* ================= EXPORTS ================= */
+
 module.exports = {
   getMe,
   saveAccounts,
-  getDashboard
+  getDashboard,
 };
