@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const API = 'http://127.0.0.1:4000';
+export const API = 'https://cod-trakr-sor4.onrender.com';
 
 const api = axios.create({
   baseURL: API,
