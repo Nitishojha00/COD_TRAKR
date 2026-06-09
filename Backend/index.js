@@ -15,7 +15,7 @@ dotenv.config();
 
 // 1. FIX CORS: Add 5500 (Live Server default)
 app.use(cors({
-  origin: ["http://127.0.0.1:3000","https://codtrakr.nitishojha.in" , "http://127.0.0.1:5500","https://cod-trakr.vercel.app"], 
+  origin: ["http://localhost:3000","http://127.0.0.1:3000","https://codtrakr.nitishojha.in" , "http://127.0.0.1:5500","https://cod-trakr.vercel.app"], 
   credentials: true 
 }));
 
