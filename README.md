@@ -1,6 +1,6 @@
 # COD TRAKR
 
-> One dashboard for your competitive-programming journey: track stats across **LeetCode, Codeforces, CodeChef and GeeksforGeeks**, keep personal notes on problems (with your mistakes), and get personalised advice from an **AI coach**.
+> One dashboard for your competitive-programming journey: track stats across **LeetCode, Codeforces, CodeChef and GeeksforGeeks**, keep personal notes on problems (with your mistakes), and get personalised advice from an **AI coach** that helps to boost your skills in competitive-programming.
 
 **Frontend:** https://codtrakr.nitishojha.in  ·  **API:** https://cod-trakr-sor4.onrender.com
 
@@ -12,7 +12,6 @@
 - **Unified dashboard**: link your usernames once; the app aggregates total problems solved, contests, best rating and platform count.
 - **Problem notes**: save problems with tags, a 0-3 star importance rating, a description, your solution notes and the *mistakes to avoid*. Filter by tag or stars, view a "top priority" list, paginated 8 per page.
 - **AI Coach**: a Gemini-powered chat that knows your coding stats; conversation history is persisted and can be cleared.
-- **Resilient scraping**: CodeChef and GFG use a 3-tier fallback (Cheerio → Playwright → Puppeteer-stealth).
 - **Redis caching**: platform stats cached per username, notes lists cached per user and invalidated on every write.
 
 ## Tech stack
@@ -26,7 +25,6 @@
 | Auth | JWT in `httpOnly` + `Secure` + `SameSite=None` cookie, bcryptjs |
 | Email | Brevo transactional email API |
 | AI | Google Gemini (`gemini-2.5-flash`) via `@google/generative-ai` |
-| Scraping | Axios, Cheerio, Playwright, Puppeteer-extra (stealth) |
 
 ## Architecture
 
@@ -86,7 +84,6 @@ COD_TRAKR/
 ```bash
 cd Backend
 npm install
-npx playwright install chromium   # needed for the CodeChef / GFG fallback
 ```
 
 Create `Backend/.env`:
@@ -95,6 +92,7 @@ Create `Backend/.env`:
 PORT=4000
 MONGO_URI=mongodb+srv://<user>:<pass>@<cluster>/<db>
 JWT_KEY=<long random string>
+NODE_ENV=production
 
 REDIS_USER_NAME=default
 REDIS_USER_PASS=<redis password>
@@ -113,7 +111,6 @@ npm start
 
 The API listens on `http://127.0.0.1:4000`.
 
-> **Note:** the sender address for OTP emails is set in `Backend/utils/sendEmail.js`. Change it to a sender you have verified in Brevo.
 
 ### 2. Frontend
 
@@ -125,7 +122,6 @@ npm start       # http://localhost:3000
 
 The API base URL is defined in `frontend_react/src/api.js`. Point it at `http://127.0.0.1:4000` for local development.
 
-> Cookies are set with `Secure` + `SameSite=None`, so for local development use a browser that treats `localhost` as a secure context (Chrome/Edge/Firefox do), or run the API behind HTTPS.
 
 ## API reference
 
