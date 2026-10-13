@@ -49,6 +49,7 @@ app.get("/health", async (req, res) => {
     timestamp: new Date().toISOString()
   };
 
+  console.log("Health check requested by UptimeRobot at", status.timestamp);
   try {
     const mongoose = require("mongoose");
 
