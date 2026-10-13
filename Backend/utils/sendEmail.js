@@ -6,7 +6,7 @@ const sendEmail = async (email, otp) => {
     const res = await axios.post(
       "https://api.resend.com/emails",
       {
-        from: "Nitish <onboarding@resend.dev>",
+        from: "Nitish <auth@nitishojha.in>",
         to: [email],
         subject: "Email Verification OTP",
         html: `
@@ -33,7 +33,6 @@ const sendEmail = async (email, otp) => {
       error.response?.data || error.message
     );
 
-    // Throw again so the controller can handle it.
     throw new Error("Email sending failed");
   }
 };
