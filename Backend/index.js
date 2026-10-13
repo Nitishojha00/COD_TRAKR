@@ -34,6 +34,13 @@ app.post("/logout", (req, res) => {
   res.json({ message: "Logged out" });
 });
 
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    timestamp: new Date().toISOString(),
+  });
+});
+
 const InitializeConnection = async () => {
     try {
         // Connect to MongoDB
