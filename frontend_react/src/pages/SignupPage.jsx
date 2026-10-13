@@ -107,9 +107,14 @@ export default function SignupPage() {
           <input
             type="password"
             value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder="Min. 8 characters"
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Min. 4 characters"
+            autoComplete="new-password"
           />
+          <small className="password-hint">
+            Must contain 4+ characters, one uppercase letter,
+            one lowercase letter, one number, and one symbol.
+          </small>
         </div>
 
         <button
