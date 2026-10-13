@@ -1,39 +1,39 @@
+
 const axios = require("axios");
 
 const sendEmail = async (email, otp) => {
   try {
     const res = await axios.post(
-      "https://api.brevo.com/v3/smtp/email",
+      "https://api.resend.com/emails",
       {
-        sender: {
-          name: "Nitish",
-          email: "nitishojha00@gmail.com"
-        },
-        to: [{ email }],
+        from: "Nitish <onboarding@resend.dev>",
+        to: [email],
         subject: "Email Verification OTP",
-        htmlContent: `
+        html: `
           <h2>Email Verification</h2>
-          <h1>${otp}</h1>
+          <h1 style="letter-spacing: 6px;">${otp}</h1>
           <p>This OTP is valid for 2 minutes.</p>
-        `
+          <p>If you did not request this code, please ignore this email.</p>
+        `,
+        text: `Your email verification OTP is ${otp}. This OTP is valid for 2 minutes.`
       },
       {
         headers: {
-          "api-key": process.env.BREVO_API_KEY, // 🔑 API KEY
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        }
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        timeout: 10000
       }
     );
 
     return res.data;
-
   } catch (error) {
-    console.error("sendEmail Error:", 
+    console.error(
+      "sendEmail Error:",
       error.response?.data || error.message
     );
 
-    // throw again so controller can handle it
+    // Throw again so the controller can handle it.
     throw new Error("Email sending failed");
   }
 };
